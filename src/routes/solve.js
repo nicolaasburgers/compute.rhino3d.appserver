@@ -37,7 +37,7 @@ function collectParams (req, res, next){
   switch (req.method){
   case 'HEAD':
   case 'GET':
-    res.locals.params.definition = req.params.definition
+    res.locals.params.definition = extractDefinitionName(req.url);
     res.locals.params.inputs = req.query
     break
   case 'POST':
@@ -60,6 +60,21 @@ function collectParams (req, res, next){
 
   next()
 
+}
+
+function extractDefinitionName(url) {
+  // Find the index of the first '/' and the first '?'
+  const firstSlashIndex = url.indexOf('/') + 1;
+  const firstQuestionMarkIndex = url.indexOf('?');
+
+  // If a question mark exists, return the substring from after the first '/'
+  // to just before the first '?', inclusive
+  const tempName = (firstQuestionMarkIndex !== -1)
+    ? url.substring(firstSlashIndex, firstQuestionMarkIndex)
+    : url.substring(firstSlashIndex);
+
+  // If no question mark exists, return the substring from after the first '/'
+  return tempName?.replace(/\^/g, '?').replace(/%5E/gi, '?');
 }
 
 /**
@@ -139,8 +154,14 @@ function commonSolve (req, res, next){
       }
     }
 
-    let fullUrl = req.protocol + '://' + req.get('host')
-    let definitionPath = `${fullUrl}/definition/${definition.id}`
+    let definitionPath;
+    if (definition.id) {
+      let fullUrl = req.protocol + '://' + req.get('host')
+      definitionPath = `${fullUrl}/definition/${definition.id}`
+    } else if (definition?.path) {
+      definitionPath = definition.path;
+    }
+
     const timePreComputeServerCall = performance.now()
     let computeServerTiming = null
 
@@ -196,8 +217,8 @@ function commonSolve (req, res, next){
 const pipeline = [computeParams, collectParams, checkCache, commonSolve]
 
 // Handle different http methods
-router.head('/:definition',pipeline) // do we need HEAD?
-router.get('/:definition', pipeline)
+router.head('/*',pipeline) // do we need HEAD?
+router.get('/*', pipeline)
 router.post('/', pipeline)
 
 module.exports = router
