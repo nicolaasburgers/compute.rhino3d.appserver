@@ -3,6 +3,7 @@ const express = require('express')
 const compression = require('compression')
 const logger = require('morgan')
 const cors = require('cors')
+const path = require('path');
 
 // create express web server app
 const app = express()
@@ -40,8 +41,10 @@ app.get('/favicon.ico', (req, res) => res.status(200))
 app.use('/definition', require('./routes/definition'))
 app.use('/solve', require('./routes/solve'))
 app.use('/view', require('./routes/template'))
+app.use('/viewurl', require('./routes/templateurl'))
 app.use('/version', require('./routes/version'))
 app.use('/', require('./routes/index'))
+app.use(express.static(path.join(__dirname, 'public')));
 
 // ref: https://github.com/expressjs/express/issues/3589
 // remove line when express@^4.17

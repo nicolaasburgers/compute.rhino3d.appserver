@@ -16,6 +16,16 @@
             "env": {
                 "NODE_ENV": "development"
             }
-        }
+        },
+        {
+            "name": "Launch Chrome to Debug ViewUrl Page",
+            "type": "chrome",
+            "request": "launch",
+            "url": "http://localhost:3000/viewurl/",  // Set your local dev URL here
+            "webRoot": "${workspaceFolder}/src/public",  // Adjust this to the root where definition.js is located
+            "sourceMaps": true,  // If using source maps
+            "trace": true,        // Enable logging to help diagnose potential issues
+            "skipFiles": ["<node_internals>/**"]  // Skip Node internals
+         }
     ]
 }
