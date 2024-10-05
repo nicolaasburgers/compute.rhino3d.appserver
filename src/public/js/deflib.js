@@ -10,7 +10,7 @@ loader.setLibraryPath( 'https://unpkg.com/rhino3dm@8.0.0-beta3/' )
 
 // initialise 'data' object that will be used by compute()
 const data = {
-  definition: '{{name}}',
+  definition: definitionName,
   inputs: getInputs()
 }
 
@@ -22,9 +22,8 @@ console.log('Loaded rhino3dm.')
 
 init()
 compute()
+updateMarkdownAndTags()
 
-const downloadButton = document.getElementById("downloadButton")
-downloadButton.onclick = download
 
   /////////////////////////////////////////////////////////////////////////////
  //                            HELPER  FUNCTIONS                            //
@@ -103,7 +102,7 @@ function init() {
  */
 async function compute() {
   // construct url for GET /solve/definition.gh?name=value(&...)
-  const url = new URL('/solve/' + data.definition, window.location.origin)
+  const url = new URL('/solve/' + data.definition.replace(/\?/g, '^'), window.location.origin)
   Object.keys(data.inputs).forEach(key => url.searchParams.append(key, data.inputs[key]))
   console.log(url.toString())
   
@@ -124,6 +123,31 @@ async function compute() {
     console.error(error)
   }
 }
+
+function updateMarkdownAndTags() {
+  const markdownString = `
+  ## Dynamic Markdown Example
+  This the space for **descriptions** of this calculation
+  - Input 1: ${data.inputs['input1']}
+  - Input 2: ${data.inputs['input2']}
+  `;
+
+  const tags = ['Dynamic', 'Update', 'JS', 'Three.js'];
+
+  // Update markdown
+  const markdownHtml = marked(markdownString);
+  document.getElementById('markdown-box').innerHTML = markdownHtml;
+
+  // Update tags
+  const tagsContainer = document.getElementById('tags-box');
+  tagsContainer.innerHTML = '';  // Clear previous tags
+  tags.forEach(tag => {
+      const tagElement = document.createElement('span');
+      tagElement.textContent = tag;
+      tagsContainer.appendChild(tagElement);
+  });
+}
+
 
 /**
  * Parse response
@@ -210,7 +234,6 @@ function collectResults(responseJson) {
 
         // hide spinner and enable download button
         showSpinner(false)
-        downloadButton.disabled = false
 
         // zoom to extents
         zoomCameraToSelection(camera, controls, scene.children)

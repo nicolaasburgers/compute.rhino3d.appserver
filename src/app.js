@@ -42,6 +42,7 @@ app.use('/definition', require('./routes/definition'))
 app.use('/solve', require('./routes/solve'))
 app.use('/view', require('./routes/template'))
 app.use('/viewurl', require('./routes/templateurl'))
+app.use('/deflib', require('./routes/template-deflib'))
 app.use('/version', require('./routes/version'))
 app.use('/', require('./routes/index'))
 app.use(express.static(path.join(__dirname, 'public')));

@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <link rel="icon" href="data:,">
+        <title>{{name}}</title>
+        <script src="https://cdn.jsdelivr.net/npm/marked@3.0.7/marked.min.js"></script>
+        <style>
+            body {
+                margin: 0;
+                font-family: Arial, Helvetica, sans-serif;
+            }
+            canvas { width: 100%; height: 100%; }
+            input[type=range] { width: 100%; }
+            #container { position: relative; }
+            #container canvas { position: absolute; width: 100%; height: 100%; }
+
+            #overlay {
+                position: absolute;
+                z-index: 1;
+                min-width: 200px;
+                max-width: 400px;
+                background-color: rgba(255, 255, 255, 0.5);
+                padding: 10px;
+                border: 1px solid #ccc;
+                border-radius: 5px;
+                cursor: move;
+                overflow-y: auto;
+            }
+            input[type="number"], input[type="range"], input[type="checkbox"] {
+                margin-top: 5px;  
+                margin-bottom: 5px; 
+                display: block;  
+            }
+            #loader {
+                border: 5px solid #f3f3f3;
+                border-top: 5px solid #3d3d3d;
+                border-radius: 50%;
+                width: 40px;
+                height: 40px;
+                animation: spin 1s linear infinite;
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                z-index: 2;
+            }
+            #markdown-box {
+                background-color: #f9f9f9;
+                padding: 15px;
+                border-radius: 8px;
+                border: 1px solid #ddd;
+            }
+
+            #tags-box {
+                padding: 10px;
+            }
+
+            #tags-box span {
+                background-color: #007bff;
+                color: white;
+                border-radius: 12px;
+                padding: 5px 10px;
+                margin: 5px;
+                font-size: 12px;
+                display: inline-block;
+            }
+            @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
+        </style>
+    </head>
+    <body>
+        <div id="loader"></div> 
+        <div id="container">
+            <div id="overlay">
+                {{#each inputs}}
+                <div>
+                  <label for="{{id}}">{{name}}</label>
+                  {{#number}}
+                  <input type="number" id="{{../id}}" value="{{value}}">
+                  {{/number}}
+                  {{#range}}
+                  <input type="range" id="{{../id}}" min="{{min}}" max="{{max}}" value="{{value}}" step="{{step}}">
+                  {{/range}}
+                  {{#bool}}
+                  <input type="checkbox" id="{{../id}}" {{#value}}checked{{/value}}>
+                  {{/bool}}
+                </div>
+                {{/each}}
+                <!-- Markdown box -->
+                <div id="markdown-box" style="margin-top: 20px;"></div>
+
+                <!-- Tags box -->
+                <div id="tags-box" style="margin-top: 10px;"></div>
+            </div>
+        </div>
+        <!-- Import maps polyfill -->
+        <script async src="https://unpkg.com/es-module-shims@1.8.0/dist/es-module-shims.js"></script>
+        <script type="importmap">
+            {
+                "imports": {
+                    "three": "https://unpkg.com/three@0.158.0/build/three.module.js",
+                    "three/examples/jsm/controls/OrbitControls": "https://unpkg.com/three@0.158.0/examples/jsm/controls/OrbitControls.js",
+                    "three/examples/jsm/loaders/3DMLoader": "https://unpkg.com/three@0.158.0/examples/jsm/loaders/3DMLoader.js",
+                    "rhino3dm":"https://unpkg.com/rhino3dm@8.0.0-beta3/rhino3dm.module.js",
+                    "rhino_compute": "https://unpkg.com/compute-rhino3d@0.13.0-beta/compute.rhino3d.module.js"
+                }
+            }
+        </script>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                console.log('DOM content loaded');
+
+                const overlay = document.getElementById('overlay');
+                let isDragging = false;
+                let offsetX, offsetY;
+
+                overlay.addEventListener('mousedown', (e) => {
+                    if (e.target.tagName === 'INPUT' && e.target.type === 'range') {
+                        return;  // Don't move the panel if a slider is being dragged
+                    }
+                    
+                    isDragging = true;
+                    offsetX = e.clientX - overlay.offsetLeft;
+                    offsetY = e.clientY - overlay.offsetTop;
+                    overlay.style.position = 'absolute';  // Ensure it's absolutely positioned
+                });
+
+                document.addEventListener('mousemove', (e) => {
+                    if (isDragging) {
+                        overlay.style.left = e.clientX - offsetX + 'px';
+                        overlay.style.top = e.clientY - offsetY + 'px';
+                    }
+                });
+
+                document.addEventListener('mouseup', () => {
+                    isDragging = false;
+                });
+
+/*
+                console.log('Rendering markdown and tags');
+
+                const tags = ['JavaScript', 'HTML', 'CSS', 'Web Development'];
+                const markdownString = `## Example Heading
+This is **bold** text.
+
+- Bullet point 1
+- Bullet point 2
+- Bullet point 3
+- Bullet point 4`;
+
+                // Render markdown
+                const markdownHtml = marked(markdownString);
+                document.getElementById('markdown-box').innerHTML = markdownHtml;
+
+                // Render tags
+                const tagsContainer = document.getElementById('tags-box');
+                tags.forEach(tag => {
+                    const tagElement = document.createElement('span');
+                    tagElement.textContent = tag;
+                    tagsContainer.appendChild(tagElement);
+                });
+                */
+            });            
+        </script>
+
+        <script>
+            const definitionName = "{{{name}}}";  // Inject the Handlebars variable into JS
+        </script>
+
+        <script type="module" src="/js/deflib.js"></script>
+    </body>
+</html>
