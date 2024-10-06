@@ -22,7 +22,7 @@ console.log('Loaded rhino3dm.')
 
 init()
 compute()
-updateMarkdownAndTags()
+await updateMarkdownAndTags()
 
 
   /////////////////////////////////////////////////////////////////////////////
@@ -125,29 +125,53 @@ async function compute() {
 }
 
 function updateMarkdownAndTags() {
-  const markdownString = `
-  ## Dynamic Markdown Example
-  This the space for **descriptions** of this calculation
-  - Input 1: ${data.inputs['input1']}
-  - Input 2: ${data.inputs['input2']}
-  `;
+  // Get markdown and tags from data attributes
+  const container = document.getElementById('container');
+  //const markdownString = container.getAttribute('data-markdown');
+  //const tags = JSON.parse(container.getAttribute('data-tags'));
 
-  const tags = ['Dynamic', 'Update', 'JS', 'Three.js'];
+  const markdownString = container.getAttribute('data-markdown');
+  const tags = container.getAttribute('data-tags').split(',')
 
-  // Update markdown
+  // Get markdown and tags boxes
+  const markdownBox = document.getElementById('markdown-box');
+  const tagsBox = document.getElementById('tags-box');
+/*
+  // Render markdown
   const markdownHtml = marked(markdownString);
   document.getElementById('markdown-box').innerHTML = markdownHtml;
 
-  // Update tags
+  // Render tags
   const tagsContainer = document.getElementById('tags-box');
-  tagsContainer.innerHTML = '';  // Clear previous tags
+  tagsContainer.innerHTML = ''; // Clear any existing tags
   tags.forEach(tag => {
       const tagElement = document.createElement('span');
       tagElement.textContent = tag;
       tagsContainer.appendChild(tagElement);
   });
-}
+*/
+  // Handle markdown box
+  if (markdownString.trim().length > 0) {
+    const markdownHtml = marked(markdownString);
+    markdownBox.innerHTML = markdownHtml;
+    markdownBox.style.display = 'block';  // Ensure it's visible
+  } else {
+      markdownBox.style.display = 'none';  // Hide the box if markdownString is empty
+  }
 
+  // Handle tags box
+  if (tags.length > 0 && tags[0].trim().length > 0) {
+      tagsBox.innerHTML = '';  // Clear any existing tags
+      tags.forEach(tag => {
+          const tagElement = document.createElement('span');
+          tagElement.textContent = tag.trim();  // Trim any extra spaces
+          tagsBox.appendChild(tagElement);
+      });
+      tagsBox.style.display = 'block';  // Ensure it's visible
+  } else {
+      tagsBox.style.display = 'none';  // Hide the box if no tags
+  }
+}
 
 /**
  * Parse response

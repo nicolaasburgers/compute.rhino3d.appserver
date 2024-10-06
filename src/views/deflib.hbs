@@ -28,8 +28,8 @@
                 overflow-y: auto;
             }
             input[type="number"], input[type="range"], input[type="checkbox"] {
-                margin-top: 5px;  
-                margin-bottom: 5px; 
+                margin-top: 15px;  
+                margin-bottom: 15px;
                 display: block;  
             }
             #loader {
@@ -49,6 +49,8 @@
                 padding: 15px;
                 border-radius: 8px;
                 border: 1px solid #ddd;
+                max-height: 500px; /* Set the maximum height */
+                overflow-y: auto;  /* Add vertical scroll if content exceeds max height */
             }
 
             #tags-box {
@@ -72,8 +74,12 @@
     </head>
     <body>
         <div id="loader"></div> 
-        <div id="container">
+        <div id="container"
+            data-markdown="{{{markdownString}}}" 
+            data-tags="{{tagsString}}">
             <div id="overlay">
+                <h2>{{title}}</h2>
+
                 {{#each inputs}}
                 <div>
                   <label for="{{id}}">{{name}}</label>

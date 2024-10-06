@@ -32,13 +32,113 @@ function parseDeflibUrl(url) {
   });
 }
 
+function getRawGitHubUrl(def, type) {
+  const version = def.version;
+  if (version != 'latest') {
+    // not supported yet; just override with latest for now
+    version = 'latest'
+  }
+
+  if (version == 'latest') {
+    const typeSuffix = (type == 'gh') ? '.gh' 
+      : (type == 'metadata') ? '.metadata.txt' 
+        : (type == 'documentation') ? '.description.md' : '';
+    return `https://raw.githubusercontent.com/${def.owner}/${def.repo}/main/${type}/${def.slug}${typeSuffix}`;
+  }
+  return '';
+}
+
+async function fetchAndParseMetaDataFile(def) {
+  try {
+    const url = getRawGitHubUrl(def, 'metadata');
+
+    // Step 1: Fetch the file from the GitHub URL
+    const response = await fetch(url);
+    
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
+    }
+    
+    // Step 2: Get the raw text
+    const rawText = await response.text();
+
+    // Step 3: Split the text by lines
+    const lines = rawText.split('\n').map(line => line.trim());
+
+    // Step 4: Extract defName and version from the first line
+    const [defName, version] = lines[0].split(',');
+
+    // Step 5: Initialize variables
+    let tags = [];
+    let isTagSection = false;
+
+    // Step 6: Iterate through the remaining lines to find the T: section
+    for (let i = 1; i < lines.length; i++) {
+      const line = lines[i];
+
+      // Check if the line is the "T:" line, which marks the start of the tags
+      if (line.startsWith('T:')) {
+        isTagSection = true;
+        continue; // Skip the "T:" line itself
+      }
+
+      // If we're in the tag section, add each line to the tags list
+      if (isTagSection) {
+        if (line) tags.push(line);
+      }
+    }
+
+    // Output parsed values
+    console.log("Definition Name:", defName);
+    console.log("Version:", version);
+    console.log("Tags:", tags);
+
+    // Return the parsed data
+    return {
+      defName,
+      version,
+      tags
+    };
+  } catch (error) {
+    console.error('Error fetching or parsing the file:', error);
+  }
+}
+
+async function fetchAndParseDocumentation(def) {
+  try {
+    const url = getRawGitHubUrl(def, 'documentation');
+
+    // Fetch the file from the given URL
+    const response = await fetch(url);
+    
+    // Check if the response is OK (200-299)
+    if (!response.ok) {
+      if (response.status === 404) {
+        console.warn('File not found (404), returning empty content');
+        return '';  // Return an empty string if file is not found
+      }
+      throw new Error('Network response was not ok');
+    }
+
+    // Get the raw text from the response and return it
+    const textContent = await response.text();
+    return textContent;
+
+  } catch (error) {
+    console.error('Error fetching or parsing the documentation:', error);
+    return '';  // Return an empty string in case of any error
+  }
+}
+
 router.get('/*', async (req, res, next) => {
   const urlPart = req.url.substring(req.url.indexOf('/') + 1);  // Remove the "/deflib/" part of the URL
   const parsedDefinitions = parseDeflibUrl(urlPart);  // Parse the URL
   
-  const def = parsedDefinitions[0]; // Just do the first specified one only so far
-  const defKey = `${def.owner}+${def.repo}+${def.slug}+${def.version}`;
-  const fullUrl = `https://raw.githubusercontent.com/${def.owner}/${def.repo}/main/gh/${def.slug}.gh`;
+  const parsedDef = parsedDefinitions[0]; // Just do the first specified one only so far
+  const defKey = `${parsedDef.owner}+${parsedDef.repo}+${parsedDef.slug}+${parsedDef.version}`;
+  const fullUrl = getRawGitHubUrl(parsedDef, 'gh');
+  const metadata = await fetchAndParseMetaDataFile(parsedDef);
+  const documentation = await fetchAndParseDocumentation(parsedDef);
 
   let definitions = req.app.get('definitions');
   let definition = definitions.find(o => o.name === defKey)
@@ -67,12 +167,13 @@ router.get('/*', async (req, res, next) => {
     definition.outputs = data.outputs
   }
 
-  const versionString = def.version && def.version > 0 ? `v${def.version}` : '(latest)';
-  const pageTitle = `${def.slug} ${versionString}`;
-  
+  const pageTitle = `${metadata.defName} v${metadata.version}`;
+
   view = {
     name: definition.name,
     title: pageTitle,
+    tagsString: metadata.tags.join(','),
+    markdownString: documentation,
     inputs: []
   }
 
