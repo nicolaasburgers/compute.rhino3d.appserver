@@ -3,7 +3,7 @@
     <head>
         <meta charset="utf-8">
         <link rel="icon" href="data:,">
-        <title>{{name}}</title>
+        <title>{{title}}</title>
         <script src="https://cdn.jsdelivr.net/npm/marked@3.0.7/marked.min.js"></script>
         <style>
             body {
@@ -118,8 +118,13 @@
                 let offsetX, offsetY;
 
                 overlay.addEventListener('mousedown', (e) => {
-                    if (e.target.tagName === 'INPUT' && e.target.type === 'range') {
-                        return;  // Don't move the panel if a slider is being dragged
+                    // Check if the target is an input or textarea field
+                    if (
+                        e.target.tagName === 'INPUT' ||
+                        e.target.tagName === 'TEXTAREA' ||
+                        e.target.type === 'range'
+                    ) {
+                        return;  // Do not allow the overlay to move if interacting with inputs or sliders
                     }
                     
                     isDragging = true;
