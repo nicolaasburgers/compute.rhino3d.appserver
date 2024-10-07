@@ -16,8 +16,13 @@ router.get('/', (req, res) => {
 })
 
 function extractValue(defaultValue) {
-  const data = defaultValue?.innerTree[Object.keys(defaultValue.innerTree)[0]][0].data;
-  return data;
+  if (typeof defaultValue === 'object' && defaultValue !== null) {
+    // It's an object (including arrays, but excluding null) - returned by Rhino 8
+    return defaultValue?.innerTree[Object.keys(defaultValue.innerTree)[0]][0].data;
+  } else {
+    // It's a primitive value (number, string, boolean, etc.) - returned by Rhino 7
+    return defaultValue;  // use the primitive value directly
+  }
 }
 
 /**
