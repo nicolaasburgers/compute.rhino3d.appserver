@@ -12,7 +12,7 @@ const router = express.Router()
 const getParams = require('../definitions.js').getParams
 
 router.get('/', (req, res) => {
-  res.send('This is the fixed string response for /deflib')
+  res.send('Add your repository owner, repository name, slug and version of your definition after /deflib to load that GH file in the parametric viewer')
 })
 
 function extractValue(defaultValue) {
@@ -32,7 +32,7 @@ function extractValue(defaultValue) {
 function parseDeflibUrl(url) {
   const sets = url.split(';');  // Split by semicolon to get each set
   return sets.map(set => {
-      const [owner, repo, slug, version] = set.split('+');  // Split by plus sign
+      const [owner, repo, slug, version] = set.split(/[+/]/);  // Split by plus sign
       return { owner, repo, slug, version: version || 'latest' };  // Default to 'latest' if version is missing
   });
 }

@@ -19,9 +19,9 @@
                 position: absolute;
                 z-index: 1;
                 min-width: 200px;
-                max-width: 400px;
+                max-width: 300px;
                 background-color: rgba(255, 255, 255, 0.5);
-                padding: 10px;
+                padding: 10px 20px 10px 20px;
                 border: 1px solid #ccc;
                 border-radius: 5px;
                 cursor: move;
@@ -52,11 +52,9 @@
                 max-height: 500px; /* Set the maximum height */
                 overflow-y: auto;  /* Add vertical scroll if content exceeds max height */
             }
-
             #tags-box {
-                padding: 10px;
+                padding: 10px 0px 10px 0px;
             }
-
             #tags-box span {
                 background-color: #007bff;
                 color: white;
@@ -70,6 +68,15 @@
                 0% { transform: rotate(0deg); }
                 100% { transform: rotate(360deg); }
             }
+            .slider-container {
+                display: flex;
+                align-items: center;
+                gap: 10px;  /* Adjust the gap between the slider and value */
+            }
+            .slider-value {
+                min-width: 40px;  /* Make sure the value box doesn't shrink */
+                text-align: right; /* Align the number to the right */
+            }
         </style>
     </head>
     <body>
@@ -82,16 +89,19 @@
 
                 {{#each inputs}}
                 <div>
-                  <label for="{{id}}">{{name}}</label>
-                  {{#number}}
-                  <input type="number" id="{{../id}}" value="{{value}}">
-                  {{/number}}
-                  {{#range}}
-                  <input type="range" id="{{../id}}" min="{{min}}" max="{{max}}" value="{{value}}" step="{{step}}">
-                  {{/range}}
-                  {{#bool}}
-                  <input type="checkbox" id="{{../id}}" {{#value}}checked{{/value}}>
-                  {{/bool}}
+                    <label for="{{id}}">{{name}}</label>
+                    {{#number}}
+                    <input type="number" id="{{../id}}" value="{{value}}">
+                    {{/number}}
+                    {{#range}}
+                    <div class="slider-container">
+                        <input type="range" id="{{../id}}" min="{{min}}" max="{{max}}" value="{{value}}" step="{{step}}" oninput="updateSliderValue('{{../id}}', this.value)">
+                        <span id="{{../id}}-value" class="slider-value">{{value}}</span> <!-- Value displayed here -->
+                    </div>
+                    {{/range}}
+                    {{#bool}}
+                    <input type="checkbox" id="{{../id}}" {{#value}}checked{{/value}}>
+                    {{/bool}}
                 </div>
                 {{/each}}
                 <!-- Markdown box -->
@@ -112,6 +122,12 @@
                     "rhino3dm":"https://unpkg.com/rhino3dm@8.0.0-beta3/rhino3dm.module.js",
                     "rhino_compute": "https://unpkg.com/compute-rhino3d@0.13.0-beta/compute.rhino3d.module.js"
                 }
+            }
+        </script>
+
+        <script>
+            function updateSliderValue(id, value) {
+                document.getElementById(id + '-value').innerText = value;
             }
         </script>
 
